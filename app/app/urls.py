@@ -18,11 +18,12 @@ from django.urls import path
 
 from rest_framework.authtoken import views
 
-from ttsconvert.views import HelloView
+from ttsconvert.views import TTSConversionView
 
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-token-auth/', views.obtain_auth_token),
+    path('tts-convert/', TTSConversionView.as_view(), name='tts-conversion')
 ]
