@@ -21,6 +21,15 @@ class Tests(TestCase):
         response = self.get_token()
         self.assertEqual(response.status_code, 200)
 
+    def test_tts_convert_api_authorization(self):
+        self.create_users()
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f'Token false token')
+
+        # Invalid token shouldn't have access
+        response = client.post('/tts-convert/')
+        self.assertEqual(response.status_code, 401)
+
     def test_tts_convert_api(self):
         self.create_users()
         response = self.get_token()
@@ -37,8 +46,6 @@ class Tests(TestCase):
         response = client.get('/tts-convert/', {'request_id': cr_id})
         self.assertEqual(response.status_code, 200)
 
-        from ttsconvert.models import ConversionRequest
-        import pdb;pdb.set_trace()
         # Check that another user cannot access the ConversionRequest
         response = self.get_token('malicious', 'pass')
         malicious_client = APIClient()
@@ -49,9 +56,14 @@ class Tests(TestCase):
 
 
         # Delete the request
+
+        # Non-existent document
         response = client.delete('/tts-convert/', {'id': None}, format='json')
         self.assertEqual(response.status_code, 404)
 
+        # User not associated with the document
+        response = malicious_client.delete('/tts-convert/', {'id': cr_id}, format='json')
+        self.assertEqual(response.status_code, 404)
 
         response = client.delete('/tts-convert/', {'id': cr_id}, format='json')
         self.assertEqual(response.status_code, 200)
